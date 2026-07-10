@@ -2,9 +2,9 @@
 set -e
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  RUN_DATE=$(date -v-1d '+%Y%m%d')  # Mac
+  RUN_DATE=$(TZ='Asia/Seoul' date -v-1d '+%Y%m%d')  # Mac
 else
-  RUN_DATE=$(date -d 'yesterday' '+%Y%m%d')  # Linux
+  RUN_DATE=$(TZ='Asia/Seoul' date -d 'yesterday' '+%Y%m%d')  # Linux
 fi
 
 echo "Exporting raw events for $RUN_DATE to GCS..."
