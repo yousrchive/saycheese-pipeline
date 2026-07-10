@@ -1,0 +1,27 @@
+name: Daily Saycheese Data Pipeline
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # 매일 UTC 18:00 = 한국시간 새벽 3시
+  workflow_dispatch:  # 수동 실행 버튼
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: saycheese-484314
+
+      - name: Run pipeline
+        run: |
+          chmod +x scripts/run_pipeline.sh
+          bash scripts/run_pipeline.sh
