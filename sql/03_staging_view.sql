@@ -1,8 +1,8 @@
-CREATE OR REPLACE VIEW `saycheese-484314.analytics_517953491.staging_data` AS
+CREATE OR REPLACE VIEW `saycheese-484314.saycheese_mart.event_base_view` AS
 SELECT * EXCEPT(row_num)
 FROM (
   SELECT
-    event_date,
+    PARSE_DATE('%Y%m%d', event_date) AS event_date,
     event_timestamp AS event_ts_micros,
     TIMESTAMP_MICROS(event_timestamp) AS event_ts,
     event_name,
@@ -10,14 +10,14 @@ FROM (
     user_pseudo_id,
     COALESCE(user_id, user_pseudo_id) AS unified_user_key,
 
-    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS ga_session_id,
-    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_number') AS ga_session_number,
-    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_location,
-    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_referrer') AS page_referrer,
-    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_title') AS page_title,
-    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'engagement_time_msec') AS engagement_time_msec,
-    (SELECT COALESCE(value.string_value, CAST(value.int_value AS STRING)) FROM UNNEST(event_params) WHERE key = 'session_engaged') AS session_engaged,
-    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'entry_source') AS entry_source,
+    (SELECT element.value.int_value FROM UNNEST(event_params.list) WHERE element.key = 'ga_session_id') AS ga_session_id,
+    (SELECT element.value.int_value FROM UNNEST(event_params.list) WHERE element.key = 'ga_session_number') AS ga_session_number,
+    (SELECT element.value.string_value FROM UNNEST(event_params.list) WHERE element.key = 'page_location') AS page_location,
+    (SELECT element.value.string_value FROM UNNEST(event_params.list) WHERE element.key = 'page_referrer') AS page_referrer,
+    (SELECT element.value.string_value FROM UNNEST(event_params.list) WHERE element.key = 'page_title') AS page_title,
+    (SELECT element.value.int_value FROM UNNEST(event_params.list) WHERE element.key = 'engagement_time_msec') AS engagement_time_msec,
+    (SELECT COALESCE(element.value.string_value, CAST(element.value.int_value AS STRING)) FROM UNNEST(event_params.list) WHERE element.key = 'session_engaged') AS session_engaged,
+    (SELECT element.value.string_value FROM UNNEST(event_params.list) WHERE element.key = 'entry_source') AS entry_source,
 
     platform,
     device.category AS device_category,
@@ -39,6 +39,6 @@ FROM (
       ORDER BY event_timestamp
     ) AS row_num
 
-  FROM `saycheese-484314.analytics_517953491.raw_events_external`
+  FROM `saycheese-484314.saycheese_mart.raw_events_external`
 )
 WHERE row_num = 1;
